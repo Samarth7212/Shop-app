@@ -92,7 +92,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     super.dispose();
   }
 
-  void _saveForm() {
+  Future<void> _saveForm() async {
     final _isValid =
         _form.currentState.validate(); //Will trigger all the validators
     if (!_isValid) {
@@ -110,10 +110,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
         _isLoading = false;
       });
     } else {
-      Provider.of<Products>(context, listen: false)
-          .addProduct(_editedProduct)
-          .catchError((error) {
-        return showDialog<Null>(
+      try {
+        await Provider.of<Products>(context, listen: false)
+            .addProduct(_editedProduct);
+      } catch (error) {
+        // print(error);
+        await showDialog<Null>(
+            //ShowDialog returns a future
             context: context,
             builder: (ctx) => AlertDialog(
                   title: const Text('Error Occurred'),
@@ -126,14 +129,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         child: const Text('Okay')),
                   ],
                 ));
-      }).then((_) {
-        //This then block is after catchError(), so this block will always be executed
+      } finally {
         setState(() {
           _isLoading = false;
         });
         Navigator.of(context).pop();
-      });
+      }
     }
+
+    //This then block is after catchError(), so this block will always be executed
     // print(_editedProduct.title);
     // print(_editedProduct.description);
     // print(_editedProduct.price);

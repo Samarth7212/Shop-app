@@ -69,30 +69,28 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  Future<void> addProduct(Product product) {
+  Future<void> addProduct(Product product) async {
+    //Using async, below code is wrapped in future and that future is returned automatically, so we don't have to return e.g. return http
     final url = Uri.parse(
         'https://shopapp-90d19-default-rtdb.firebaseio.com/products.json');
     // final url = Uri.https('flutter-update.firebaseio.com', '/products.json')
-    return http
-        .post(
-      url,
-      body: json.encode(
-        {
-          'title': product.title,
-          'description': product.description,
-          'price': product.price,
-          'imageUrl': product.imageUrl,
-          'isFavorite': product.isFavorite,
-        },
-      ),
-    )
-        .then((response) {
-      //After the http post is done, this is executed i.e. product is added locally
-      //The response gives a unique key
+    // return http
 
-      // print(jsonDecode(response.body));
-
-      // _items.add(value);
+    //With await, till the post request is not finished, further code is not executed,
+    //the code in next lines will be in then block implicitly,
+    try {
+      final response = await http.post(
+        url,
+        body: json.encode(
+          {
+            'title': product.title,
+            'description': product.description,
+            'price': product.price,
+            'imageUrl': product.imageUrl,
+            'isFavorite': product.isFavorite,
+          },
+        ),
+      );
       final newProduct = Product(
           id: jsonDecode(response.body)['name'],
           title: product.title,
@@ -102,10 +100,32 @@ class Products with ChangeNotifier {
       _items.add(newProduct);
 
       notifyListeners();
-    }).catchError((error) {
-      print(error);
-      throw error;
-    });
+    } catch (error) {
+      // print(error);
+      rethrow;
+      // throw error;
+    }
+    // .then((response) {
+
+    //After the http post is done, this is executed i.e. product is added locally
+    //The response gives a unique key
+
+    // print(jsonDecode(response.body));
+
+    // _items.add(value);
+    // final newProduct = Product(
+    //     id: jsonDecode(response.body)['name'],
+    //     title: product.title,
+    //     description: product.description,
+    //     price: product.price,
+    //     imageUrl: product.imageUrl);
+    // _items.add(newProduct);
+
+    // notifyListeners();
+    // }).catchError((error) {
+    //   print(error);
+    //   throw error;
+    // });
   }
 
   void deleteProduct(String id) {
