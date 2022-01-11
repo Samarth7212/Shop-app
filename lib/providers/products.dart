@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:newshop/models/http_exceptions.dart';
 
 import './product.dart';
 
@@ -158,14 +159,47 @@ class Products with ChangeNotifier {
     // });
   }
 
-  void deleteProduct(String id) {
-    _items.removeWhere((element) => element.id == id);
+  Future<void> deleteProduct(String id) async {
+    final url = Uri.parse(
+        'https://shopapp-90d19-default-rtdb.firebaseio.com/products/$id.json');///$id.json
+
+    final existingProductIndex = _items.indexWhere(
+        (element) => element.id == id); //Index of product to be deleted
+
+    var existingProduct = _items[
+        existingProductIndex]; //Pointer of the product about to be deleted
+
+    _items.removeAt(
+        existingProductIndex); //Removing it locally, but it does not gets deleted from memory since existingProduct is pointing at it
+
     notifyListeners();
+    final response = await http.delete(url);
+    if (response.statusCode >=
+        400) //i.e. error has occurred but it won't be shown
+    {
+      //If the deletion fails, we'll roll back the deletion
+      _items.insert(existingProductIndex, existingProduct);
+      notifyListeners();
+      throw HttpException('Could not delete product');
+    }
+    //If deletion succeeds, we'll be no longer interested in it.
+    existingProduct = null;
   }
 
-  void updateProduct(String id, Product newProduct) {
+  Future<void> updateProduct(String id, Product newProduct) async {
     final productIndex = _items.indexWhere((element) => element.id == id);
     if (productIndex >= 0) {
+      final url = Uri.parse(
+          'https://shopapp-90d19-default-rtdb.firebaseio.com/products/$id.json');
+      await http.patch(
+        url,
+        body: jsonEncode({
+          'title': newProduct.title,
+          'description': newProduct.description,
+          'price': newProduct.price,
+          'imageUrl': newProduct.imageUrl,
+        }),
+      );
       _items[productIndex] = newProduct;
       notifyListeners();
     } else {

@@ -70,8 +70,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
           'title': _editedProduct.title,
           'price': _editedProduct.price.toString(),
           'description': _editedProduct.description,
-          // 'imageUrl': _editedProduct.imageUrl,
-          'imageUrl': '',
+          'imageUrl': _editedProduct.imageUrl,
+          // 'imageUrl': '',
         };
         _imageUrlController.text = _editedProduct.imageUrl;
       }
@@ -104,11 +104,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
       _isLoading = true;
     });
     if (_editedProduct.id != null) {
-      Provider.of<Products>(context, listen: false)
+      await Provider.of<Products>(context, listen: false)
           .updateProduct(_editedProduct.id, _editedProduct);
-      setState(() {
-        _isLoading = false;
-      });
     } else {
       try {
         await Provider.of<Products>(context, listen: false)
@@ -129,14 +126,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         child: const Text('Okay')),
                   ],
                 ));
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.of(context).pop();
-      }
+      } 
+      // finally {
+      //   setState(() {
+      //     _isLoading = false;
+      //   });
+      //   Navigator.of(context).pop();
+      // }
     }
-
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.of(context).pop();
     //This then block is after catchError(), so this block will always be executed
     // print(_editedProduct.title);
     // print(_editedProduct.description);
@@ -196,7 +197,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           BoxDecoration(border: Border.all(width: 1, color: Colors.grey)),
       child: _imageUrlController.text.isEmpty
           ? const Text('Enter a URL')
-          : FittedBox(
+          :  FittedBox(
               child: Image.network(
                 _imageUrlController.text,
                 fit: BoxFit.cover,
@@ -212,21 +213,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
       initialValue: _isInitValues['imageUrl'],
 
       validator: (value) {
-        // if (_imageUrlController.text.isEmpty ||
-        //     (!_imageUrlController.text.startsWith('http') &&
-        //             !_imageUrlController.text.startsWith('https')) &&
-        //         (!_imageUrlController.text.endsWith('.jpg') &&
-        //             !_imageUrlController.text.endsWith('.jpeg') &&
-        //             !_imageUrlController.text.endsWith('.png'))) {
-        //   // if (_isInitValues['imageUrl'].isEmpty ||
-        //   //     (!_isInitValues['imageUrl'].startsWith('http') &&
-        //   //             !_isInitValues['imageUrl'].startsWith('https')) &&
-        //   //         (!_isInitValues['imageUrl'].endsWith('.jpg') &&
-        //   //             !_isInitValues['imageUrl'].endsWith('.jpeg') &&
-        //   //             !_isInitValues['imageUrl'].endsWith('.png'))) {
-        //   return 'Probably not an image';
-        // }
-        // return null;
         if (value.isEmpty) {
           return 'Please enter an image URL.';
         }
