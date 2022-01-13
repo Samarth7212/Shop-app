@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 import './cart.dart';
 
@@ -23,13 +26,31 @@ class Orders with ChangeNotifier {
     return [..._orders];
   }
 
-  void addOrder(List<CartItem> cartProducts, double total) {
+  void addOrder(List<CartItem> cartProducts, double total) async {
+    final timeStamp = DateTime.now();
+    final url = Uri.parse(
+        'https://shopapp-90d19-default-rtdb.firebaseio.com/orders.json');
+    final response= await http.post(
+      url,
+      body: jsonEncode({
+        'amount': total,
+        'dateTime': timeStamp.toIso8601String(),
+        'products': cartProducts
+            .map((cartP) => {
+                  'id': cartP.id,
+                  'title': cartP.title,
+                  'quantity': cartP.quantity,
+                  'price': cartP.price,
+                })
+            .toList(),
+      }),
+    );
     _orders.insert(
       0,
       OrderItem(
-        id: DateTime.now().toString(),
+        id: jsonDecode(response.body)['id'],
         amount: total,
-        dateTime: DateTime.now(),
+        dateTime: timeStamp,
         products: cartProducts,
       ),
     );
