@@ -36,15 +36,7 @@ class ProductItem extends StatelessWidget {
         footer: GridTileBar(
           backgroundColor: Colors.black87,
           leading: Consumer<Product>(
-            builder: (ctx, product, _) => IconButton(
-              icon: Icon(
-                product.isFavorite ? Icons.favorite : Icons.favorite_border,
-              ),
-              color: Theme.of(context).colorScheme.secondary,
-              onPressed: () {
-                product.toggleFavoriteStatus();
-              },
-            ),
+            builder: (ctx, product, _) => FavoriteButton(product),
           ),
           title: Text(
             product.title,
@@ -77,6 +69,31 @@ class ProductItem extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class FavoriteButton extends StatefulWidget {
+  final Product product;
+  const FavoriteButton(this.product);
+
+  @override
+  State<FavoriteButton> createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<FavoriteButton> {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        widget.product.isFavorite ? Icons.favorite : Icons.favorite_border,
+      ),
+      color: Theme.of(context).colorScheme.secondary,
+      onPressed: () {
+        setState(() {
+          widget.product.toggleFavoriteStatus();
+        });
+      },
     );
   }
 }

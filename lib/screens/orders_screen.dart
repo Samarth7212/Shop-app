@@ -7,32 +7,13 @@ import '../providers/orders.dart' show Orders;
 import '../widgets/order_item.dart';
 import '../widgets/app_drawer.dart';
 
-class OrdersScreen extends StatefulWidget {
+class OrdersScreen extends StatelessWidget {
   static const routeName = '/orders';
-
-  @override
-  _OrdersScreenState createState() => _OrdersScreenState();
-}
-
-class _OrdersScreenState extends State<OrdersScreen> {
-  var _isLoading = false;
-
-  @override
-  void initState() {
-
-    setState(() {
-      _isLoading = true;
-    });
-    Provider.of<Orders>(context, listen: false).fetchAndSetOrders();
-    setState(() {
-      _isLoading = false;
-    });
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final orderData = Provider.of<Orders>(context);
+    // print('Building Orders Screen');
+    // final orderData = Provider.of<Orders>(context);//Not needed because consumer is used, where we need orders data,
+    //This screen now need not to be stateful widget
     return RefreshIndicator(
       onRefresh: Provider.of<Orders>(context, listen: false).fetchAndSetOrders,
       child: Scaffold(
@@ -40,12 +21,31 @@ class _OrdersScreenState extends State<OrdersScreen> {
           title: const Text('Your Orders'),
         ),
         drawer: AppDrawer(),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView.builder(
-                itemCount: orderData.orders.length,
-                itemBuilder: (ctx, i) => OrderItem(orderData.orders[i]),
-              ),
+        body: FutureBuilder(
+          //FutureBuilder gets a future, from which we can know the connection state and work accordingly
+          future: Provider.of<Orders>(context, listen: false)
+              .fetchAndSetOrders(), //Fututre is return by fetchAndSetOrders()
+          builder: (ctx, dataSnapShot) {
+            //Based on that fututre, async snapShot is provide, based on which we can check state
+            if (dataSnapShot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else {
+              if (dataSnapShot.error != null) {
+                //Do error handling
+                return const Center(
+                  child: Text('Error occurred'),
+                );
+              } else {
+                return Consumer<Orders>(
+                  builder: (ctx, orderData, _) => ListView.builder(
+                    itemCount: orderData.orders.length,
+                    itemBuilder: (ctx, i) => OrderItem(orderData.orders[i]),
+                  ),
+                );
+              }
+            }
+          },
+        ),
       ),
     );
   }
