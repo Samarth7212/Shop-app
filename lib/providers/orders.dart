@@ -20,27 +20,60 @@ class OrderItem {
 }
 
 class Orders with ChangeNotifier {
-  final List<OrderItem> _orders = [];
+  List<OrderItem> _orders = [];
 
   List<OrderItem> get orders {
     return [..._orders];
   }
 
-  void addOrder(List<CartItem> cartProducts, double total) async {
-    final timeStamp = DateTime.now();
+  Future<void> fetchAndSetOrders() async {
+    
     final url = Uri.parse(
         'https://shopapp-90d19-default-rtdb.firebaseio.com/orders.json');
-    final response= await http.post(
+    final response = await http.get(url);
+    final List<OrderItem> loadedOrders = [];
+    final extractedData = json.decode(response.body) as Map<String, dynamic>;
+    if (extractedData == null) {
+      return;
+    }
+    extractedData.forEach((orderId, orderData) {
+      loadedOrders.add(
+        OrderItem(
+          id: orderId,
+          amount: orderData['amount'],
+          dateTime: DateTime.parse(orderData['dateTime']),
+          products: (orderData['products'] as List<dynamic>)
+              .map(
+                (item) => CartItem(
+                  id: item['id'],
+                  price: item['price'],
+                  quantity: item['quantity'],
+                  title: item['title'],
+                ),
+              )
+              .toList(),
+        ),
+      );
+    });
+    _orders = loadedOrders.reversed.toList();
+    notifyListeners();
+  }
+
+  Future<void> addOrder(List<CartItem> cartProducts, double total) async {
+    final url = Uri.parse(
+        'https://shopapp-90d19-default-rtdb.firebaseio.com/orders.json');
+    final timestamp = DateTime.now();
+    final response = await http.post(
       url,
-      body: jsonEncode({
+      body: json.encode({
         'amount': total,
-        'dateTime': timeStamp.toIso8601String(),
+        'dateTime': timestamp.toIso8601String(),
         'products': cartProducts
-            .map((cartP) => {
-                  'id': cartP.id,
-                  'title': cartP.title,
-                  'quantity': cartP.quantity,
-                  'price': cartP.price,
+            .map((cp) => {
+                  'id': cp.id,
+                  'title': cp.title,
+                  'quantity': cp.quantity,
+                  'price': cp.price,
                 })
             .toList(),
       }),
@@ -48,9 +81,9 @@ class Orders with ChangeNotifier {
     _orders.insert(
       0,
       OrderItem(
-        id: jsonDecode(response.body)['id'],
+        id: json.decode(response.body)['name'],
         amount: total,
-        dateTime: timeStamp,
+        dateTime: timestamp,
         products: cartProducts,
       ),
     );
