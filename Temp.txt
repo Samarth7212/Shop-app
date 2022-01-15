@@ -1,3 +1,15 @@
+final url = Uri.parse('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=<YOUR_API_KEY>')
+http.post(url, ...)
+
+final url = Uri.parse('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=<YOUR_API_KEY>')
+http.post(url, ...)
+
+
+
+
+
+
+
 The http package we added in the last lecture changed slightly with its last versions.
 
 In the next lecture, we'll send a POST request to an API endpoint with a URL.
@@ -24,3 +36,11 @@ Alternatively, you can also use this syntax:
 
 final url = Uri.https('flutter-update.firebaseio.com', '/products.json')
 http.post(url, ...)
+
+
+
+
+
+
+
+
