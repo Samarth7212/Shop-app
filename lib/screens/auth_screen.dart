@@ -1,8 +1,10 @@
-// ignore_for_file: deprecated_member_use, sized_box_for_whitespace, use_key_in_widget_constructors
+// ignore_for_file: deprecated_member_use, sized_box_for_whitespace, use_key_in_widget_constructors, empty_catches, unused_catch_clause, unused_local_variable
 
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:newshop/models/http_exceptions.dart';
+import 'package:newshop/screens/products_overview_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth.dart';
@@ -108,31 +110,78 @@ class _AuthCardState extends State<AuthCard> {
   var _isLoading = false;
   final _passwordController = TextEditingController();
 
+  void _showErrorDialog(String errorMsg) {
+    showDialog(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('ERROR OCCURRED'),
+            content: Text(errorMsg),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Okay'))
+            ],
+          );
+        });
+  }
+
   Future<void> _submit() async {
-    // if (!_formKey.currentState.validate()) {
-    //   // Invalid!
-    //   print('Something invalid');
-    //   return;
-    // }
+    if (_formKey.currentState.validate()) {
+      // Invalid!
+      print('Something invalid');
+      return;
+    }
     _formKey.currentState.save();
     setState(() {
       _isLoading = true;
     });
-    if (_authMode == AuthMode.Login) {
-      // Log user in
-    } else {
-      // Sign user up
-      //samarthkamble7212@gmail.com
-      print('Calling sign up');
-      await Provider.of<Auth>(context, listen: false).signup(
-        _authData['email'],
-        _authData['password'],
-        
-      );
+    try {
+      if (_authMode == AuthMode.Login) {
+        // Log user in
+        await Provider.of<Auth>(context, listen: false).signin(
+          _authData['email'],
+          _authData['password'],
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      } else {
+        // Sign user up
+        await Provider.of<Auth>(context, listen: false).signup(
+          _authData['email'],
+          _authData['password'],
+        );
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    } on HttpException catch (error) {
+      final msg = _configureErrorMessage(error);
+      _showErrorDialog(msg);
+    } catch (error) {
+      const errorMsg = 'Could not complete, please try again later';
+      _showErrorDialog(errorMsg);
     }
     setState(() {
       _isLoading = false;
     });
+  }
+
+  String _configureErrorMessage(HttpException error) {
+    var errorMsg = 'Authentication failed';
+    if (error.toString().contains('EMAIL_EXISTS')) {
+      errorMsg = 'This email address is already signed in';
+    } else if (error.toString().contains('INVALID_EMAIL')) {
+      errorMsg = 'Please check entered mail ID';
+    } else if (error.toString().contains('WEAK_PASSWORD')) {
+      errorMsg = 'The password is weak';
+    } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
+      errorMsg = 'Email not found';
+    } else if (error.toString().contains('INVALID_PASSWORD')) {
+      errorMsg = 'Invvalid Password';
+    }
+    return errorMsg;
   }
 
   void _switchAuthMode() {
