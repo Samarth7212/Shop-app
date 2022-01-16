@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:newshop/models/http_exceptions.dart';
-import 'package:newshop/screens/products_overview_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth.dart';
