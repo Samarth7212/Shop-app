@@ -38,11 +38,13 @@ class UserProductsScreen extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(8),
           child: ListView.builder(
-            itemBuilder: (_, index) => UserProductItem(
-              id: productsData.items[index].id,
-              imageUrl: productsData.items[index].imageUrl,
-              title: productsData.items[index].title,
-            ),
+            itemBuilder: (_, index) => productsData.items == null
+                ? CircularProgressIndicator()
+                : UserProductItem(
+                    id: productsData.items[index].id,
+                    imageUrl: productsData.items[index].imageUrl,
+                    title: productsData.items[index].title,
+                  ),
             itemCount: productsData.items.length,
           ),
         ),
