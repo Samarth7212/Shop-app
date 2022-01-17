@@ -23,8 +23,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => Auth()),
-        ChangeNotifierProvider(create: (_) => Products()),
+        //Auth is needed first in the list
+        ChangeNotifierProvider.value(value: Auth()),
+        // ChangeNotifierProvider(create: (_) => Products()),
+        ChangeNotifierProxyProvider<Auth, Products>(
+          create: (_) =>
+              Products(null, null), //Here create is must, otherwise won't work
+          update: (
+            context,
+            auth, //This is Auth object, when changed rebuilds this widget
+            previous, //This stores the previous object of the class
+          ) =>
+              Products(
+            auth.token,
+            previous.items ?? [],
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => Cart()),
         ChangeNotifierProvider(create: (_) => Orders()),
       ],
