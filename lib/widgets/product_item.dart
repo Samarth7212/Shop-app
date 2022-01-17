@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:newshop/providers/auth.dart';
 import '../screens/product_detail_screen.dart';
 import '../providers/product.dart';
 import '../providers/cart.dart';
@@ -84,6 +85,8 @@ class FavoriteButton extends StatefulWidget {
 class _FavoriteButtonState extends State<FavoriteButton> {
   @override
   Widget build(BuildContext context) {
+    final authData = Provider.of<Auth>(context, listen: false);
+
     return IconButton(
       icon: Icon(
         widget.product.isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -91,7 +94,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
       color: Theme.of(context).colorScheme.secondary,
       onPressed: () {
         setState(() {
-          widget.product.toggleFavoriteStatus();
+          widget.product.toggleFavoriteStatus(authData.token);
         });
       },
     );
