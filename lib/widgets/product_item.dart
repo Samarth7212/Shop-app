@@ -94,7 +94,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
       color: Theme.of(context).colorScheme.secondary,
       onPressed: () {
         setState(() {
-          widget.product.toggleFavoriteStatus(authData.token);
+          widget.product.toggleFavoriteStatus(authData.token, authData.userId);
         });
       },
     );

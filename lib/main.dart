@@ -27,8 +27,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: Auth()),
         // ChangeNotifierProvider(create: (_) => Products()),
         ChangeNotifierProxyProvider<Auth, Products>(
-          create: (_) =>
-              Products(null, null), //Here create is must, otherwise won't work
+          create: (_) => Products(
+              null, null, null), //Here create is must, otherwise won't work
           update: (
             context,
             auth, //This is Auth object, when changed rebuilds this widget
@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
           ) =>
               Products(
             auth.token,
+            auth.userId,
             previous.items ?? [],
           ),
         ),
