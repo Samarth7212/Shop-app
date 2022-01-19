@@ -20,6 +20,13 @@ class Auth with ChangeNotifier {
     await _authenticate(email, password, 'signInWithPassword');
   }
 
+  void logout() {
+    _token = null;
+    _userId = null;
+    _expiryDate = null;
+    notifyListeners();
+  }
+
   bool get isAuth {
     //If a token is there and is not expired, the user is validated.
     return token != null;

@@ -128,7 +128,7 @@ class _AuthCardState extends State<AuthCard> {
   Future<void> _submit() async {
     if (_formKey.currentState.validate()) {
       // Invalid!
-      print('Something invalid');
+      // print('Something invalid');
       return;
     }
     _formKey.currentState.save();
