@@ -76,18 +76,20 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  Future<void> fetchAndSetProducts() async {
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    //Boolean value is a default argument
+    final filterString = filterByUser
+        ? '&orderBy="creatorId"&equalTo="$userId"'
+        : ''; //This string makes order of products when creator ID is equal to user ID.
     var url = Uri.parse(
-        'https://shopapp-90d19-default-rtdb.firebaseio.com/products.json?auth=$authToken');
+        'https://shopapp-90d19-default-rtdb.firebaseio.com/products.json?auth=$authToken$filterString');
     try {
       final response = await http.get(url);
       // print(jsonDecode(response.body));
       final List<Product> loadedProducts = [];
       final extractedData = jsonDecode(response.body)
           as Map<String, dynamic>; //Dynamic==Map of <String,value>
-      // if (extractedData == null) {
-      //   return;
-      // }
+
       url = Uri.parse(
           'https://shopapp-90d19-default-rtdb.firebaseio.com/userFavorites/$userId.json?auth=$authToken');
       final favoriteResponse = await http.get(url);
@@ -103,7 +105,7 @@ class Products with ChangeNotifier {
                 : favoriteData[prodId] ??
                     false, //We get it from favoriteData, not from ProdData
             description: prodData['description'],
-            price: prodData['priceauthToken'],
+            price: prodData['price'],
             title: prodData['title'],
           ));
         },
@@ -135,6 +137,7 @@ class Products with ChangeNotifier {
             'price': product.price,
             'imageUrl': product.imageUrl,
             'isFavorite': product.isFavorite,
+            'creatorId': userId,
           },
         ),
       );
