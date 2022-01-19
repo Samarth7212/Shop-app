@@ -1,6 +1,7 @@
 // ignore_for_file: unused_local_variable, unused_field
 
 import 'dart:convert';
+import 'dart:async'; //To use timer
 
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -10,6 +11,7 @@ class Auth with ChangeNotifier {
   String _token;
   DateTime _expiryDate;
   String _userId;
+  Timer _authTimer;
 
 //We need return/await here to wait till the function is executed
   Future<void> signup(String email, String password) async {
@@ -24,7 +26,21 @@ class Auth with ChangeNotifier {
     _token = null;
     _userId = null;
     _expiryDate = null;
+    if (_authTimer != null) {
+      _authTimer.cancel(); //Cancel existing timer if available
+      _authTimer = null;
+    }
     notifyListeners();
+  }
+
+  //To logout auttomatically when the token expires
+  void autoLogout() {
+    if (_authTimer != null) {
+      _authTimer.cancel(); //Cancel existing timer if available
+    }
+    var timeToExpiry = _expiryDate.difference(DateTime.now()).inSeconds;
+    _authTimer = Timer(Duration(seconds: timeToExpiry), logout);
+    // _authTimer = Timer(const Duration(seconds: 6), logout);
   }
 
   bool get isAuth {
@@ -69,6 +85,7 @@ class Auth with ChangeNotifier {
       _userId = responseData['localId'];
       _expiryDate = DateTime.now()
           .add(Duration(seconds: int.parse(responseData['expiresIn'])));
+      autoLogout();
       notifyListeners();
       // print(jsonDecode(response.body));
       return response;
