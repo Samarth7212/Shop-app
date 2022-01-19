@@ -2,9 +2,12 @@
 
 import 'dart:convert';
 import 'dart:async'; //To use timer
+import 'dart:ffi';
 
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:newshop/models/http_exceptions.dart';
 
 class Auth with ChangeNotifier {
@@ -22,7 +25,7 @@ class Auth with ChangeNotifier {
     await _authenticate(email, password, 'signInWithPassword');
   }
 
-  void logout() {
+  Future<void> logout() async {
     _token = null;
     _userId = null;
     _expiryDate = null;
@@ -30,11 +33,14 @@ class Auth with ChangeNotifier {
       _authTimer.cancel(); //Cancel existing timer if available
       _authTimer = null;
     }
+    final prefs = await SharedPreferences.getInstance();
+    // prefs.remove('userData');//Removes the key 'userData' from device storage
+    prefs.clear(); //Removes all of data in device storage
     notifyListeners();
   }
 
   //To logout auttomatically when the token expires
-  void autoLogout() {
+  void _autoLogout() {
     if (_authTimer != null) {
       _authTimer.cancel(); //Cancel existing timer if available
     }
@@ -61,6 +67,25 @@ class Auth with ChangeNotifier {
     return null;
   }
 
+  Future<bool> tryAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey('userData')) {
+      return false;
+    }
+    final extractedUserData =
+        jsonDecode(prefs.getString('userData')) as Map<String, Object>;
+    final expiryDate = DateTime.parse(extractedUserData['expiryDate']);
+    if (expiryDate.isBefore(DateTime.now())) {
+      return false;
+    }
+    _token = extractedUserData['token'];
+    _userId = extractedUserData['userId'];
+    _expiryDate = expiryDate;
+    notifyListeners();
+    _autoLogout();
+    return true;
+  }
+
   Future<void> _authenticate(
       String email, String password, String urlSegment) async {
     final url = Uri.parse(
@@ -85,8 +110,18 @@ class Auth with ChangeNotifier {
       _userId = responseData['localId'];
       _expiryDate = DateTime.now()
           .add(Duration(seconds: int.parse(responseData['expiresIn'])));
-      autoLogout();
+      _autoLogout();
       notifyListeners();
+      final prefs = await SharedPreferences
+          .getInstance(); //Returns future, which then returns preference
+
+      //For complex data, use jasonEncode({key:value})
+      final userData = jsonEncode({
+        'token': _token,
+        'userId': _userId,
+        'expiryDate': _expiryDate.toIso8601String(),
+      });
+      prefs.setString('userData', userData); //To write data
       // print(jsonDecode(response.body));
       return response;
     } on Exception catch (_) {

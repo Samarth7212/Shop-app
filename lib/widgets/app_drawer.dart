@@ -47,7 +47,11 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Log Out'),
-            onTap: () => Provider.of<Auth>(context, listen: false).logout(),
+            onTap: () {
+              Provider.of<Auth>(context, listen: false).logout();
+              Navigator.of(context).pushReplacementNamed(
+                  '/'); //This will ensure that we execute the home page logic in main.dart file, and end up at AuthScreen()
+            },
           )
         ],
       ),
