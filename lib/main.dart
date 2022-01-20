@@ -8,6 +8,7 @@ import './providers/auth.dart';
 import './providers/cart.dart';
 import './providers/orders.dart';
 
+import '/helpers/custom_route.dart';
 import './screens/splash_screen.dart';
 import './screens/products_overview_screen.dart';
 import './screens/user_products_screen.dart';
@@ -56,6 +57,10 @@ class MyApp extends StatelessWidget {
             fontFamily: 'Lato',
             colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.purple)
                 .copyWith(secondary: Colors.deepOrange),
+            pageTransitionsTheme: PageTransitionsTheme(builders: {
+              TargetPlatform.android: CustomPageTransitionBuilder(),
+              // TargetPlatform.iOS:CustomPageTransitionBuilder(),
+            }),
           ),
           home: auth.isAuth
               ? ProductsOverviewScreen()
